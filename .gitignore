@@ -1,0 +1,20 @@
+# Ignore Visual Studio files
+.vs/
+*.suo
+*.user
+*.VC.db
+*.ipch/
+*.ncb
+*.aps
+*.obj
+*.exe
+*.log
+
+# Ignore build directories
+Debug/
+Release/
+x64/
+*.ilk
+*.pdb
+*.cache
+*.tlog
