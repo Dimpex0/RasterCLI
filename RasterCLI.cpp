@@ -2,10 +2,13 @@
 //
 
 #include <iostream>
+#include "CommandProcessor.h"
+#include <string>
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    CommandProcessor processor;
+    processor.run();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
