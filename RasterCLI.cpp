@@ -4,11 +4,16 @@
 #include <iostream>
 #include "CommandProcessor.h"
 #include <string>
+#include "ImagePBM.h"
 
 int main()
 {
-    CommandProcessor processor;
-    processor.run();
+    //CommandProcessor processor;
+    //processor.run();
+    Image* image = new ImagePBM("C:\\Users\\mitko\\Downloads\\circle.pbm");
+    image->negative();
+    image->save();
+    delete image;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

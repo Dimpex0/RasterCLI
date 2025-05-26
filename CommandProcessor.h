@@ -1,5 +1,5 @@
 #pragma once
-#include "SessionManager.h"
+#include "Session.h"
 
 struct InputData {
 	std::string command;
@@ -14,7 +14,7 @@ public:
 	void dispachCommand(const InputData& data);
 
 private:
-	SessionManager sessionManager;
+	Session session;
 	bool isRunning;
 };
 

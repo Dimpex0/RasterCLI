@@ -33,6 +33,18 @@
     <ClCompile Include="UndoRedoStack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ImagePPM.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImagePGM.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImagePBM.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageBMP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
@@ -51,6 +63,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="UndoRedoStack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImagePPM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImagePGM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImagePBM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageBMP.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
