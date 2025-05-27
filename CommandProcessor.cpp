@@ -45,6 +45,8 @@ void CommandProcessor::dispachCommand(const InputData& data)
 	if (data.command == "exit") {
 		this->isRunning = false;
 		// TODO: handle saving
+
+		return;
 	}
 	else if (data.command == "load") {
 		//

@@ -12,14 +12,9 @@ public:
 	void grayscale() override;
 	void monochrome() override;
 	void negative() override;
-	void rotateLeft() override;
-	void rotateRight() override;
-	void flipTop() override;
-	void flipLeft() override;
 	void save(std::string newName = "") override;
 
 private:
-	std::vector<std::vector<bool>> originalData;
-	std::vector<std::vector<bool>> modifyData;
+	void readRaw(std::ifstream& image) override;
 };
 

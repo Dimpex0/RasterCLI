@@ -14,7 +14,7 @@ public:
 	void dispachCommand(const InputData& data);
 
 private:
-	Session session;
-	bool isRunning;
+	Session* session = nullptr;
+	bool isRunning = true;
 };
 

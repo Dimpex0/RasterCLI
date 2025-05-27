@@ -5,63 +5,53 @@
 ImagePBM::ImagePBM(std::string filename)
 {
 	this->filename = filename;
-	std::ifstream image(this->filename);
+	std::ifstream image(this->filename, std::ios::binary);
 	if (!image) {
 		throw std::runtime_error("Couldn't open file: " + filename);
 	}
 
-	// Прочитане на header информация
+	// Прочитане на magic number
 	std::string magic;
 	image >> magic;
-	if (magic != "P1") {
-		throw std::runtime_error("Wrong file format. Must be of type P1 (ASCII).");
+	if (magic != "P1" && magic != "P4") {
+		throw std::runtime_error("Unsupported PBM format: " + magic);
 	}
 
-	// Пропускане на празни редове и коментари
-	std::string token;
-	while (image >> token) {
-		if (token[0] == '#' || token[0] == ' ') {
-			char c;
-			do {
-				image.get(c);
-			} while (c != '\n' && !image.eof());
-			continue;
-		}
-		else {
-			width = std::stoi(token);
-			image >> height;
-			break;
-		}
-	}
-	std::cout << "Width: " << width << ", Height: " << height << '\n';
+	extractWidthAndHeight(image);
+	std::cout << "Width: " << this->width << ", Height: " << this->height << '\n';
 
 	if (width <= 0 || height <= 0) {
 		throw std::runtime_error("Invalid file size.");
 	}
 
-	this->width = width;
-	this->height = height;
+	this->originalData.resize(height, std::vector<int>(width));
+	this->modifyData.resize(height, std::vector<int>(width));
 
-	this->originalData.resize(height, std::vector<bool>(width));
-	this->modifyData.resize(height, std::vector<bool>(width));
-
-	int pixelValue;
-	int count = 0;
-
-	while (image >> pixelValue && count < width * height) {
-		if (pixelValue != 0 && pixelValue != 1) {
-			throw std::runtime_error("Invalid pixel value.");
-		}
-		int row = count / width;
-		int col = count % width;
-		this->originalData[row][col] = (pixelValue == 1);
-		count++;
+	if (magic == "P1") {
+		readPlain(image);
+	}
+	else if (magic == "P4") {
+		readRaw(image);
 	}
 
-	this->modifyData = this->originalData;
 
-	if (count != width * height) {
-		throw std::runtime_error("Incomplete pixel data.");
+	this->modifyData = this->originalData;
+}
+
+void ImagePBM::readRaw(std::ifstream& image) {
+	image.ignore();									// Пропуска white space или нов ред след magic number
+	int rowBytes = (this->width + 7) / 8;			// Изчислява колко байта има на ред
+	for (int r = 0; r < this->height; r++) {		// Външен for loop минаващ през всички редове
+		for (int b = 0; b < rowBytes; b++) {		// Минава през всеки байт от дадения ред
+			unsigned char byte;						// Unsigned, за да имаме range от 0 до 255, а не от -128 до 127
+			image.read(reinterpret_cast<char*>(&byte), 1);
+			for (int bit = 0; bit < 8; bit++) {
+				int c = b * 8 + bit;
+				if (c < this->width) {
+					this->originalData[r][c] = (byte >> (7 - bit)) & 1;
+				}
+			}
+		}
 	}
 }
 
@@ -84,45 +74,9 @@ void ImagePBM::negative()
 	}
 }
 
-void ImagePBM::rotateLeft()
-{
-	std::vector<std::vector<bool>> rotated(width, std::vector<bool>(height));
-
-	for (int r = 0; r < this->height; ++r) {
-		for (int c = 0; c < this->width; ++c) {
-			rotated[this->width - 1 - c][r] = this->modifyData[r][c];
-		}
-	}
-
-	this->modifyData = rotated;
-	std::swap(this->width, this->height);
-}
-
-void ImagePBM::rotateRight()
-{
-	std::vector<std::vector<bool>> rotated(width, std::vector<bool>(height));
-
-	for (int r = 0; r < this->height; ++r) {
-		for (int c = 0; c < this->width; ++c) {
-			rotated[c][this->height - 1 - r] = this->modifyData[r][c];
-		}
-	}
-
-	this->modifyData = rotated;
-	std::swap(this->width, this->height);
-}
-
-void ImagePBM::flipTop()
-{
-}
-
-void ImagePBM::flipLeft()
-{
-}
-
 void ImagePBM::save(std::string newName)
 {
-	std::string outputFile = newName.empty() ? this->filename + getCurrentDateAndTime() + ".pbm" : newName;
+	std::string outputFile = newName.empty() ? this->filename + getCurrentDateAndTime() + ".pbm" : newName + ".pbm";
 
 	std::ofstream image(outputFile);
 	if (!image) {
@@ -135,14 +89,17 @@ void ImagePBM::save(std::string newName)
 
 	for (int r = 0; r < this->height; r++) {
 		for (int c = 0; c < this->width; c++) {
-			image << modifyData[r][c] << ' ';
+			image << this->modifyData[r][c] << ' ';
 		}
-		image << '\n';
 	}
 
 	if (!image) {
 		throw std::runtime_error("Unexpected error. File might not be completely saved.");
 	}
 
+	std::cout << "Saved as " << outputFile << '\n';
+
 	this->modifyData = this->originalData;
+	this->height = this->originalHeight;
+	this->width = this->originalWidth;
 }
