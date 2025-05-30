@@ -1,5 +1,7 @@
 #pragma once
-class ImagePPM
+#include "Image.h"
+
+class ImagePPM : public Image
 {
 public:
 

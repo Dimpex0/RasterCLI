@@ -9,12 +9,11 @@ public:
 	void grayscale() override;
 	void monochrome() override;
 	void negative() override;
-	void save(std::string newName = "") override;
+	void save(const std::string& newName) override;
 
 protected:
-	unsigned maxValue;
-
-private:
 	void readRaw(std::ifstream& image) override;
+	void saveRaw(std::ofstream& image) const override;
+	void reset() override;
 };
 

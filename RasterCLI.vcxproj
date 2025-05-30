@@ -135,8 +135,6 @@
     <ClCompile Include="ImagePPM.cpp" />
     <ClCompile Include="RasterCLI.cpp" />
     <ClCompile Include="Session.cpp" />
-    <ClCompile Include="SessionManager.cpp" />
-    <ClCompile Include="UndoRedoStack.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
@@ -149,8 +147,6 @@
     <ClInclude Include="ImagePGM.h" />
     <ClInclude Include="ImagePPM.h" />
     <ClInclude Include="Session.h" />
-    <ClInclude Include="SessionManager.h" />
-    <ClInclude Include="UndoRedoStack.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -21,16 +21,10 @@
     <ClCompile Include="CommandProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SessionManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Session.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UndoRedoStack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ImagePPM.cpp">
@@ -53,16 +47,10 @@
     <ClInclude Include="CommandProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SessionManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Session.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UndoRedoStack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImagePPM.h">

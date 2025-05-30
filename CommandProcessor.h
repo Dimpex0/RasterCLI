@@ -9,9 +9,13 @@ struct InputData {
 class CommandProcessor
 {
 public:
+	~CommandProcessor();
+	// TODO: manage copying
+
 	void run();
-	const InputData& parseInput(std::string input) const;
-	void dispachCommand(const InputData& data);
+	InputData parseInput(std::string input) const;
+	void dispatchCommand(const InputData& data);
+	void exit();
 
 private:
 	Session* session = nullptr;
