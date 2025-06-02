@@ -75,7 +75,7 @@ void CommandProcessor::dispatchCommand(const InputData& data)
 		return;
 	}
 	else if (data.command == "grayscale") {
-		this->session->applyCommand(Command{CommandType::GRAYSCALE});
+		this->session->applyCommand(Command{ CommandType::GRAYSCALE });
 	}
 	else if (data.command == "monochrome") {
 		this->session->applyCommand(Command{ CommandType::MONOCHROME });
@@ -94,6 +94,17 @@ void CommandProcessor::dispatchCommand(const InputData& data)
 	}
 	else if (data.command == "flip" && data.args.size() == 1 && data.args[0] == "left") {
 		this->session->applyCommand(Command{ CommandType::FLIP_LEFT });
+	}
+	else if (data.command == "paste" && data.args.size() == 4) {
+		try {
+			unsigned posX = std::stoi(data.args[2]);
+			unsigned posY = std::stoi(data.args[3]);
+		}
+		catch (...) {
+			std::cout << "Invalid command. Must be src dest posX posY." << '\n';
+			return;
+		}
+		this->session->paste(data.args[0], data.args[1], std::stoi(data.args[2]), std::stoi(data.args[3]));
 	}
 	else if (data.command == "undo") {
 		this->session->undo();

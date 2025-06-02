@@ -147,6 +147,10 @@
     <ClInclude Include="ImagePGM.h" />
     <ClInclude Include="ImagePPM.h" />
     <ClInclude Include="Session.h" />
+    <ClInclude Include="Snapshot.h" />
+    <ClInclude Include="SnapshotPBM.h" />
+    <ClInclude Include="SnapshotPGM.h" />
+    <ClInclude Include="SnapshotPPM.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

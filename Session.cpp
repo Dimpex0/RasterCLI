@@ -10,7 +10,7 @@ Session::~Session()
 	}
 }
 
-void Session::add(std::string filename)
+void Session::add(const std::string& filename)
 {
 	int filenameSize = filename.size();
 	std::string extension = filenameSize >= 3 ? filename.substr(filenameSize - 3) : "";
@@ -25,10 +25,10 @@ void Session::add(std::string filename)
 		Image* image = new ImagePBM(filename);
 		this->images.push_back(image);
 	}
-	else if (extension == "pgm") {
-		Image* image = new ImagePGM(filename);
-		this->images.push_back(image);
-	}
+	//else if (extension == "pgm") {
+	//	Image* image = new ImagePGM(filename);
+	//	this->images.push_back(image);
+	//}
 	//else if (extension == "ppm") {
 	//	Image* image = new ImagePPM(newName);
 	//	this->images.push_back(image);
@@ -83,6 +83,16 @@ void Session::applyCommand(const Command& command) const
 	}
 }
 
+void Session::paste(const std::string& image1, const std::string& image2, unsigned posX, unsigned posY) const
+{
+	Image* src = findImage(image1);
+	Image* dest = findImage(image2);
+
+	if (src && dest) {
+		dest->paste(src, posX, posY);
+	}
+}
+
 void Session::undo() const
 {
 	for (Image* image : this->images) {
@@ -95,4 +105,15 @@ void Session::redo() const
 	for (Image* image : this->images) {
 		image->redo();
 	}
+}
+
+Image* Session::findImage(const std::string& imageName) const
+{
+	for (Image* image : this->images) {
+		if (image->getFileName() == imageName) {
+			return image;
+		}
+	}
+
+	return nullptr;
 }

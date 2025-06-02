@@ -1,14 +1,12 @@
-#pragma once
+﻿#pragma once
 #include <string>
 #include <fstream>
 #include <iostream>
 #include <vector>
 
-class Image;
+#include "Snapshot.h"
 
-enum class ImageType {
-	P1, P2, P3, P4, P5, P6,
-};
+class Image;
 
 enum class CommandType {
 	NEGATIVE,
@@ -27,47 +25,25 @@ struct Command {
 	std::vector<Image*> imageArgs;
 };
 
-struct Dimensions {
-	unsigned width;
-	unsigned height;
-
-	bool operator==(const Dimensions& other) const {
-		return width == other.width && height == other.height;
-	}
-};
-
-struct Snapshot {
-	std::vector<std::vector<int>> data;
-	unsigned maxValue;
-	Dimensions size;
-
-	bool operator==(const Snapshot& other) const {
-		return data == other.data &&
-			maxValue == other.maxValue &&
-			size == other.size;
-	}
-};
-
 
 class Image
 {
 public:
 	virtual ~Image() = default;
 
-	virtual void grayscale() = 0;
-	virtual void monochrome() = 0;
-	virtual void negative() = 0;
-	void rotateLeft();
-	void rotateRight();
-	void flipTop();
-	void flipLeft();
-	virtual void paste(const Image* const src, Image* dest, unsigned posX, unsigned posY);
+	virtual Snapshot* grayscale() const = 0;
+	virtual Snapshot* monochrome() const = 0;
+	virtual Snapshot* negative() const = 0;
+	Snapshot* rotateLeft() const;
+	Snapshot* rotateRight() const;
+	Snapshot* flipTop() const;
+	Snapshot* flipLeft() const;
+	virtual Snapshot* paste(const Image* const src, unsigned posX, unsigned posY) const = 0;
 	virtual void save(const std::string& newName) = 0;
 
-	virtual void readPlain(std::ifstream& image);
-	virtual void readRaw(std::ifstream& image) = 0;
 	bool getIsSaved() const { return this->isSaved; }
 	std::string getFileName() const { return this->filename; }
+	const Snapshot* const getModifyData() const { return this->modifyData; }
 
 	void applyCommand(const Command& command);
 	void undo();
@@ -75,18 +51,17 @@ public:
 	void applyCommands();
 
 protected:
-	void savePlain(std::ofstream& image) const;
+	virtual void savePlain(std::ofstream& image) const = 0;
 	virtual void saveRaw(std::ofstream& image) const = 0;
-	void extractWidthAndHeight(std::ifstream& image);
-	virtual void reset() = 0;
+	Dimensions& extractWidthAndHeight(std::ifstream& image);
+	void reset() { *this->modifyData = *this->originalData; this->isSaved = true; };
 
 protected:
-	ImageType type;
-	std::string filename;
-	Snapshot originalData;
-	Snapshot modifyData;
-	std::vector<Snapshot> history;
-	std::vector<Snapshot> redoStack;
+	std::string filename; // запазва с extension
+	Snapshot* originalData;
+	Snapshot* modifyData;
+	std::vector<Snapshot*> history;
+	std::vector<Snapshot*> redoStack;
 	bool isSaved = true;
 };
 

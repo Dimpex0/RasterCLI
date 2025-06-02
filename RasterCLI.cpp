@@ -4,11 +4,14 @@
 #include "Session.h"
 #include "ImagePBM.h"
 #include "ImagePGM.h"
+#include "Snapshot.h"
 
 int main()
 {
-    CommandProcessor processor;
-    processor.run();
+    //CommandProcessor processor;
+    //processor.run();
+     
+    
     //Image* image = new ImagePGM("C:\\Users\\mitko\\Downloads\\sample_640x426.pgm");
     //image->flipLeft();
     //image->flipTop();
@@ -17,4 +20,9 @@ int main()
     //image->rotateRight();
     //image->save("");
     //delete image;
+
+    Image* img1 = new ImagePBM("gerrymander.ascii.pbm");
+    Image* img2 = new ImagePBM("circle.pbm");
+    img1->paste(img2, 10, 20);
+    img1->save("");
 }
