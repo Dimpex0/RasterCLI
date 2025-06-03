@@ -25,16 +25,16 @@ void Session::add(const std::string& filename)
 		Image* image = new ImagePBM(filename);
 		this->images.push_back(image);
 	}
-	//else if (extension == "pgm") {
-	//	Image* image = new ImagePGM(filename);
-	//	this->images.push_back(image);
-	//}
-	//else if (extension == "ppm") {
-	//	Image* image = new ImagePPM(newName);
-	//	this->images.push_back(image);
-	//}
+	else if (extension == "pgm") {
+		Image* image = new ImagePGM(filename);
+		this->images.push_back(image);
+	}
+	else if (extension == "ppm") {
+		Image* image = new ImagePPM(filename);
+		this->images.push_back(image);
+	}
 	else {
-		throw std::runtime_error("Invalid extension. Please don't forget to add .{extension} after each image.");
+		throw std::invalid_argument("Invalid extension. Please don't forget to add .{extension} after each image.");
 	}
 }
 
@@ -85,11 +85,18 @@ void Session::applyCommand(const Command& command) const
 
 void Session::paste(const std::string& image1, const std::string& image2, unsigned posX, unsigned posY) const
 {
+	std::cout << "Enter session paste" << '\n';
 	Image* src = findImage(image1);
 	Image* dest = findImage(image2);
 
 	if (src && dest) {
-		dest->paste(src, posX, posY);
+		std::cout << "Enter session paste dispatch" << '\n';
+		Command cmd;
+		cmd.type = CommandType::PASTE;
+		cmd.imageArgs.push_back(src);
+		cmd.stringArgs.push_back(std::to_string(posX));
+		cmd.stringArgs.push_back(std::to_string(posY));
+		dest -> applyCommand(cmd);
 	}
 }
 

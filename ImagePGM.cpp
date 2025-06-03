@@ -1,5 +1,4 @@
 ﻿#include "ImagePGM.h"
-#include "SnapshotPGM.h"
 
 ImagePGM::ImagePGM(const std::string& filename)
 {
@@ -12,125 +11,167 @@ ImagePGM::ImagePGM(const std::string& filename)
 	// Прочитане на magic number
 	std::string magic;
 	image >> magic;
-	std::cout << magic << '\n';
 	std::cout << "Magic: " << magic << '\n';
 	if (magic != "P2" && magic != "P5") {
 		throw std::runtime_error("Unsupported PGM format: " + magic);
 	}
 
-	Dimensions size = extractWidthAndHeight(image);
-	std::cout << "Width: " << size.width << ", Height: " << size.height << '\n';
+	this->originalData.size = extractWidthAndHeight(image);
+	std::cout << "Width: " << this->originalData.size.width << ", Height: " << this->originalData.size.height << '\n';
 
-	if (size.width <= 0 || size.height <= 0) {
+	if (this->originalData.size.width <= 0 || this->originalData.size.height <= 0) {
 		throw std::runtime_error("Invalid file size.");
 	}
 
-	unsigned maxValue;
-	image >> maxValue;
-	std::cout << "Max value: " << maxValue << '\n';
-	if (maxValue > 255) {
+	image >> this->originalData.maxValue;
+	std::cout << "Max value: " << this->originalData.maxValue << '\n';
+	if (this->originalData.maxValue > 255) {
 		throw std::runtime_error("2 bytes per pixel not supported.");
 	}
 
-	std::vector<std::vector<int>> data;
-	ImageType type;
+	this->originalData.data.resize(this->originalData.size.height, std::vector<Pixel>(this->originalData.size.width));
+
 	if (magic == "P2") {
-		type = ImageType::P2;
-		data = readPlain(image, size);
+		this->type = ImageType::P2;
+		readPlain(image);
 	}
 	else if (magic == "P5") {
-		type = ImageType::P5;
-		data = readRaw(image, size);
+		this->type = ImageType::P5;
+		readRaw(image);
 	}
-	if (!image || data.empty()) {
+	if (!image || this->originalData.data.empty()) {
 		throw std::runtime_error("Couldn't read image.");
 	}
 
-	this->originalData = new SnapshotPGM(type, size, maxValue, data);
-	this->modifyData = new SnapshotPGM(type, size, maxValue, data);
-	this->history.push_back(this->modifyData);
+	this->modifyData = this->originalData;
 }
 
-std::vector<std::vector<int>> ImagePGM::readRaw(std::ifstream& image, const Dimensions& size) const
+void ImagePGM::readRaw(std::ifstream& image)
 {
-	std::vector<std::vector<int>> data(size.height, std::vector<int>(size.width));
-	image.ignore(); // пропуска whitespace/new line след maxValue
+	const Dimensions& size = this->originalData.size;
+
 	for (int r = 0; r < size.height; r++) {
 		for (int c = 0; c < size.width; c++) {
 			unsigned char pixelValue;
 			image.read(reinterpret_cast<char*>(&pixelValue), 1);
-			data[r][c] = static_cast<int>(pixelValue);
+			this->originalData.data[r][c] = Pixel{ pixelValue, pixelValue, pixelValue };
 		}
 	}
-	return data;
 }
 
-std::vector<std::vector<int>> ImagePGM::readPlain(std::ifstream& image, const Dimensions& size) const
+void ImagePGM::readPlain(std::ifstream& image)
 {
-	std::vector<std::vector<int>> data(size.height, std::vector<int>(size.width));
-	int pixelValue, count = 0;
+	const Dimensions& size = this->originalData.size;
+
+	unsigned pixelValue, count = 0;
 	while (image >> pixelValue && count < size.width * size.height) {
 		int r = count / size.width;
 		int c = count % size.width;
-		data[r][c] = pixelValue;
+		this->originalData.data[r][c] = Pixel{pixelValue, pixelValue, pixelValue};
 		count++;
 	}
-
-	return data;
 }
 
-Snapshot* ImagePGM::grayscale() const
+void ImagePGM::grayscale()
 {
-	return nullptr;
+	return;
 }
 
-Snapshot* ImagePGM::monochrome() const
+void ImagePGM::monochrome()
 {
-	unsigned maxValue = this->modifyData->getMaxValue();
+	unsigned maxValue = this->modifyData.maxValue;
 	if (maxValue == 1) { // Вече е монохромна
-		return nullptr;
+		return;
 	}
 
-	Dimensions size = this->modifyData->getSize();
-	std::vector<std::vector<int>> data = this->modifyData->getIntData();
+	const Dimensions& size = this->modifyData.size;
 
 	for (int r = 0; r < size.height; r++) {
 		for (int c = 0; c < size.width; c++) {
-			int value = data[r][c];
+			int value = this->modifyData.data[r][c].red;
 			int threshold = maxValue / 2;
 			if (value > threshold) {
-				data[r][c] = 1;
+				this->modifyData.data[r][c] = Pixel{1, 1, 1};
 			}
 			else {
-				data[r][c] = 0;
+				this->modifyData.data[r][c] = Pixel{ 0, 0, 0 };
 			}
 		}
 	}
-	maxValue = 1;
-
-	ImageType type = this->modifyData->getType();
-	return new SnapshotPGM(type, size, maxValue, data);
+	this->modifyData.maxValue = 1;
 }
 
-Snapshot* ImagePGM::negative() const
+void ImagePGM::negative()
 {
-	unsigned maxValue = this->modifyData->getMaxValue();
-	Dimensions size = this->modifyData->getSize();
-	std::vector<std::vector<int>> data = this->modifyData->getIntData();
+	unsigned maxValue = this->modifyData.maxValue;
+	const Dimensions& size = this->modifyData.size;
 
 	for (int r = 0; r < size.height; r++) {
 		for (int c = 0; c < size.width; c++) {
-			data[r][c] = maxValue - data[r][c];
+			unsigned currPixelValue = this->modifyData.data[r][c].red;
+			this->modifyData.data[r][c] = Pixel{ maxValue - currPixelValue, maxValue - currPixelValue, maxValue - currPixelValue };
 		}
 	}
+}
 
-	ImageType type = this->modifyData->getType();
-	return new SnapshotPGM(type, size, maxValue, data);
+void ImagePGM::paste(const Image* const src, unsigned posX, unsigned posY)
+{
+	std::cout << "Start paste on PGM" << '\n';
+	Snapshot& destData = this->modifyData;
+	unsigned newWidth = std::max(destData.size.width, posX + src->getModifyData().size.width);
+	unsigned newHeight = std::max(destData.size.height, posY + src->getModifyData().size.height);
+
+	unsigned maxValue = destData.maxValue;
+	std::vector<std::vector<Pixel>> result(newHeight, std::vector<Pixel>(newWidth, Pixel{ maxValue, maxValue, maxValue }));
+
+	// Копира снимката в новия размер
+	for (int r = 0; r < destData.size.height; r++)
+		for (int c = 0; c < destData.size.width; c++)
+			result[r][c] = destData.data[r][c];
+
+	const Snapshot& srcData = src->getModifyData();
+	ImageType srcType = src->getType();
+
+	if (srcType == ImageType::P1 || srcType == ImageType::P4) {
+		// PBM -> PGM
+		for (int r = 0; r < srcData.size.height; r++)
+			for (int c = 0; c < srcData.size.width; c++) {
+				unsigned v = srcData.data[r][c].red ? maxValue : 0;
+				result[r + posY][c + posX] = Pixel{ v, v, v };
+			}
+	}
+	else if (srcType == ImageType::P2 || srcType == ImageType::P5) {
+		// PGM -> PGM
+		int srcMax = srcData.maxValue;
+		for (int r = 0; r < srcData.size.height; r++)
+			for (int c = 0; c < srcData.size.width; c++) {
+				unsigned v = srcData.data[r][c].red;
+				if (srcMax != maxValue && srcMax > 0) {
+					v = v * maxValue / srcMax; // Изравнява изобразяването на цветовете
+				}
+				result[r + posY][c + posX] = Pixel{ v, v, v };
+			}
+	}
+	else if (srcType == ImageType::P3 || srcType == ImageType::P6) {
+		// PPM -> PGM
+		int srcMax = srcData.maxValue;
+		for (int r = 0; r < srcData.size.height; r++)
+			for (int c = 0; c < srcData.size.width; c++) {
+				const Pixel& px = srcData.data[r][c];
+				unsigned gray = pixelToGray(px);
+				if (srcMax != maxValue && srcMax > 0) // Изравнява изобразяването на цветовете
+					gray = gray * maxValue / srcMax;
+				result[r + posY][c + posX] = Pixel{ gray, gray, gray };
+			}
+	}
+
+	destData.data = result;
+	destData.size = Dimensions{ newWidth, newHeight };
 }
 
 void ImagePGM::save(const std::string& newName)
 {
-	std::string outputFile = newName.empty() ? this->filename + getCurrentDateAndTime() + ".pgm" : newName + ".pgm";
+	std::string outputFile = generateNewName(newName, ".pgm");
 
 	std::ofstream image(outputFile, std::ios::binary);
 	if (!image) {
@@ -138,19 +179,17 @@ void ImagePGM::save(const std::string& newName)
 	}
 
 	// Записване на header информация
-	ImageType type = this->modifyData->getType();
-	if (type == ImageType::P2) {
+	if (this->type == ImageType::P2) {
 		image << "P2\n";
 	}
-	else if (type == ImageType::P5) {
+	else if (this->type == ImageType::P5) {
 		image << "P5\n";
 	}
 
-	Dimensions size = this->modifyData->getSize();
+	const Dimensions& size = this->modifyData.size;
 	image << size.width << ' ' << size.height << '\n';
 
-	unsigned maxValue = this->modifyData->getMaxValue();
-	image << maxValue << '\n';
+	image << this->modifyData.maxValue << '\n';
 
 	if (type == ImageType::P2) {
 		savePlain(image);
@@ -169,24 +208,22 @@ void ImagePGM::save(const std::string& newName)
 
 void ImagePGM::savePlain(std::ofstream& image) const
 {
-	Dimensions size = this->modifyData->getSize();
-	const std::vector<std::vector<int>>& data = this->modifyData->getIntData();
+	const Dimensions& size = this->modifyData.size;
 
 	for (int r = 0; r < size.height; r++) {
 		for (int c = 0; c < size.width; c++) {
-			image << data[r][c] << ' ';
+			image << this->modifyData.data[r][c].red << ' ';
 		}
 	}
 }
 
 void ImagePGM::saveRaw(std::ofstream& image) const
 {
-	Dimensions size = this->modifyData->getSize();
-	const std::vector<std::vector<int>>& data = this->modifyData->getIntData();
+	const Dimensions& size = this->modifyData.size;
 
 	for (int r = 0; r < size.height; r++) {
 		for (int c = 0; c < size.width; c++) {
-			unsigned char pixelValue = static_cast<unsigned char>(data[r][c]);
+			unsigned char pixelValue = static_cast<unsigned char>(this->modifyData.data[r][c].red);
 			image.write(reinterpret_cast<const char*>(&pixelValue), 1);
 		}
 	}

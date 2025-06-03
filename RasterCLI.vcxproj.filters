@@ -36,9 +36,6 @@
     <ClCompile Include="ImagePBM.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ImageBMP.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
@@ -60,21 +57,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImagePBM.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageBMP.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Snapshot.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SnapshotPBM.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SnapshotPGM.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SnapshotPPM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

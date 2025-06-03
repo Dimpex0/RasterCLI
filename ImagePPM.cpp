@@ -1,5 +1,4 @@
 ﻿#include "ImagePPM.h"
-#include "SnapshotPPM.h"
 
 ImagePPM::ImagePPM(const std::string& filename)
 {
@@ -18,179 +17,207 @@ ImagePPM::ImagePPM(const std::string& filename)
         throw std::runtime_error("Unsupported PPM format: " + magic);
     }
 
-    Dimensions size = extractWidthAndHeight(image);
-    std::cout << "Width: " << size.width << ", Height: " << size.height << '\n';
+    this->originalData.size = extractWidthAndHeight(image);
+    std::cout << "Width: " << this->originalData.size.width << ", Height: " << this->originalData.size.height << '\n';
 
-    if (size.width <= 0 || size.height <= 0) {
+    if (this->originalData.size.width <= 0 || this->originalData.size.height <= 0) {
         throw std::runtime_error("Invalid file size.");
     }
 
-    unsigned maxValue;
-    image >> maxValue;
-    std::cout << "Max value: " << maxValue << '\n';
-    if (maxValue > 255) {
+    image >> this->originalData.maxValue;
+    std::cout << "Max value: " << this->originalData.maxValue << '\n';
+    if (this->originalData.maxValue > 255) {
         throw std::runtime_error("2 bytes per pixel not supported.");
     }
 
-    std::vector<std::vector<Pixel>> data;
-    ImageType type;
+    this->originalData.data.resize(this->originalData.size.height, std::vector<Pixel>(this->originalData.size.width));
+
     if (magic == "P3") {
-        type = ImageType::P3;
-        data = readPlain(image, size);
+        this->type = ImageType::P3;
+        readPlain(image);
     }
     else if (magic == "P6") {
-        type = ImageType::P6;
-        data = readRaw(image, size);
+        this->type = ImageType::P6;
+        readRaw(image);
     }
-    if (!image || data.empty()) {
+    if (!image || this->originalData.data.empty()) {
         throw std::runtime_error("Couldn't read image.");
     }
 
-    this->originalData = new SnapshotPPM(type, size, maxValue, data);
-    this->modifyData = new SnapshotPPM(type, size, maxValue, data);
-    this->history.push_back(this->modifyData);
+    this->modifyData = this->originalData;
 }
 
-std::vector<std::vector<Pixel>> ImagePPM::readRaw(std::ifstream& image, const Dimensions& size) const
+void ImagePPM::readRaw(std::ifstream& image)
 {
-    std::vector<std::vector<Pixel>> data(size.height, std::vector<Pixel>(size.width));
-    image.ignore();
+    const Dimensions& size = this->originalData.size;
+
     for (int r = 0; r < size.height; r++) {
         for (int c = 0; c < size.width; c++) {
             unsigned char rgb[3];
             image.read(reinterpret_cast<char*>(rgb), 3);
-            data[r][c] = Pixel{
-                static_cast<int>(rgb[0]),
-                static_cast<int>(rgb[1]),
-                static_cast<int>(rgb[2]),
+            this->originalData.data[r][c] = Pixel{
+                rgb[0],
+                rgb[1],
+                rgb[2],
             };
         }
     }
-
-    return data;
 }
 
-std::vector<std::vector<Pixel>> ImagePPM::readPlain(std::ifstream& image, const Dimensions& size) const
+void ImagePPM::readPlain(std::ifstream& image)
 {
-    std::vector<std::vector<Pixel>> data(size.height, std::vector<Pixel>(size.width));
-    image.ignore();
+    const Dimensions& size = this->originalData.size;
+
     for (int r = 0; r < size.height; r++) {
         for (int c = 0; c < size.width; c++) {
-            int red, green, blue;
+            unsigned red, green, blue;
             image >> red >> green >> blue;
-            data[r][c] = Pixel{ red, green, blue };
+            this->originalData.data[r][c] = Pixel{ red, green, blue };
         }
     }
-
-    return data;
 }
 
-Snapshot* ImagePPM::grayscale() const
+void ImagePPM::grayscale()
 {
-    const std::vector<std::vector<Pixel>>& oldData = this->modifyData->getPixelData();
-    Dimensions size = this->modifyData->getSize();
-    unsigned maxValue = this->modifyData->getMaxValue();
-
-    std::vector<std::vector<Pixel>> newData(size.height, std::vector<Pixel>(size.width));
+    const Dimensions& size = this->modifyData.size;
+    unsigned maxValue = this->modifyData.maxValue;
 
     for (int r = 0; r < size.height; r++) {
         for (int c = 0; c < size.width; c++) {
-            const Pixel& px = oldData[r][c];
-            int gray = static_cast<int>(0.299 * px.red + 0.587 * px.green + 0.114 * px.blue + 0.5);
-            if (gray < 0) {
-                gray = 0;
-            }
-            if (gray > maxValue) {
-                gray = maxValue;
-            }
-            newData[r][c] = Pixel{ gray, gray, gray };
+            const Pixel& px = this->modifyData.data[r][c];
+            unsigned gray = pixelToGray(px);
+            this->modifyData.data[r][c] = Pixel{ gray, gray, gray };
         }
     }
-
-    ImageType type = this->modifyData->getType();
-    Snapshot* snap = new SnapshotPPM(type, size, maxValue, newData);
-    return snap;
 }
 
-Snapshot* ImagePPM::monochrome() const
+void ImagePPM::monochrome()
 {
-    const std::vector<std::vector<Pixel>>& oldData = this->modifyData->getPixelData();
-    Dimensions size = this->modifyData->getSize();
-    unsigned maxValue = this->modifyData->getMaxValue();
+    unsigned maxValue = this->modifyData.maxValue;
+    if (maxValue == 1) {
+        return;
+    }
 
-    std::vector<std::vector<Pixel>> newData(size.height, std::vector<Pixel>(size.width));
+    const Dimensions& size = this->modifyData.size;
 
     int threshold = maxValue / 2;
     for (int r = 0; r < size.height; r++) {
         for (int c = 0; c < size.width; c++) {
-            const Pixel& px = oldData[r][c];
-            int gray = static_cast<int>(0.299 * px.red + 0.587 * px.green + 0.114 * px.blue + 0.5);
+            const Pixel& px = this->modifyData.data[r][c];
+            unsigned gray = pixelToGray(px);
 
             if (gray >= threshold) {
-                newData[r][c] = Pixel{ 
-                    static_cast<int>(maxValue),
-                    static_cast<int>(maxValue),
-                    static_cast<int>(maxValue),
-                };
+                this->modifyData.data[r][c] = Pixel{1, 1, 1};
             }
             else {
-                newData[r][c] = Pixel{ 0, 0, 0 };
+                this->modifyData.data[r][c] = Pixel{ 0, 0, 0 };
             }
         }
     }
-
-    ImageType type = this->modifyData->getType();
-    Snapshot* snap = new SnapshotPPM(type, size, maxValue, newData);
-    return snap;
+    this->modifyData.maxValue = 1;
 }
 
-Snapshot* ImagePPM::negative() const
+void ImagePPM::negative()
 {
-    const std::vector<std::vector<Pixel>>& oldData = this->modifyData->getPixelData();
-    Dimensions size = this->modifyData->getSize();
-    unsigned maxValue = this->modifyData->getMaxValue();
-
-    std::vector<std::vector<Pixel>> newData(size.height, std::vector<Pixel>(size.width));
+    const Dimensions& size = this->modifyData.size;
+    unsigned maxValue = this->modifyData.maxValue;
 
     for (int r = 0; r < size.height; r++) {
         for (int c = 0; c < size.width; c++) {
-            const Pixel& px = oldData[r][c];
-            newData[r][c] = Pixel{
-                static_cast<int>(maxValue) - px.red,
-                static_cast<int>(maxValue) - px.green,
-                static_cast<int>(maxValue) - px.blue
+            const Pixel& px = this->modifyData.data[r][c];
+            this->modifyData.data[r][c] = Pixel{
+                maxValue - px.red,
+                maxValue - px.green,
+                maxValue - px.blue
             };
         }
     }
-
-    ImageType type = this->modifyData->getType();
-    Snapshot* snap = new SnapshotPPM(type, size, maxValue, newData);
-    return snap;
 }
+
+void ImagePPM::paste(const Image* const src, unsigned posX, unsigned posY)
+{
+    std::cout << "Start paste on PPM" << '\n';
+
+    Snapshot& destData = this->modifyData;
+    unsigned newWidth = std::max(destData.size.width, posX + src->getModifyData().size.width);
+    unsigned newHeight = std::max(destData.size.height, posY + src->getModifyData().size.height);
+
+    unsigned maxValue = destData.maxValue;
+    std::vector<std::vector<Pixel>> result(newHeight, std::vector<Pixel>(newWidth, Pixel{ maxValue, maxValue, maxValue }));
+
+    // Копира снимка в новия размер
+    for (int r = 0; r < destData.size.height; r++)
+        for (int c = 0; c < destData.size.width; c++)
+            result[r][c] = destData.data[r][c];
+
+    const Snapshot& srcData = src->getModifyData();
+    ImageType srcType = src->getType();
+
+    if (srcType == ImageType::P1 || srcType == ImageType::P4) {
+        // PBM -> PPM
+        for (int r = 0; r < srcData.size.height; r++)
+            for (int c = 0; c < srcData.size.width; c++) {
+                unsigned v = srcData.data[r][c].red ? maxValue : 0;
+                result[r + posY][c + posX] = Pixel{ v, v, v };
+            }
+    }
+    else if (srcType == ImageType::P2 || srcType == ImageType::P5) {
+        // PGM -> PPM
+        unsigned srcMax = srcData.maxValue;
+        for (int r = 0; r < srcData.size.height; r++)
+            for (int c = 0; c < srcData.size.width; c++) {
+                unsigned v = srcData.data[r][c].red;
+                if (srcMax != maxValue && srcMax > 0) {
+                    v = v * maxValue / srcMax; // Изравнява изобразяването на цветовете
+                }
+                result[r + posY][c + posX] = Pixel{ v, v, v };
+            }
+    }
+    else if (srcType == ImageType::P3 || srcType == ImageType::P6) {
+        // PPM -> PPM
+        unsigned srcMax = srcData.maxValue;
+        for (int r = 0; r < srcData.size.height; r++)
+            for (int c = 0; c < srcData.size.width; c++) {
+                Pixel px = srcData.data[r][c];
+                if (srcMax != maxValue && srcMax > 0) { // Изравнява изобразяването на цветовете
+                    px.red = px.red * maxValue / srcMax;
+                    px.green = px.green * maxValue / srcMax;
+                    px.blue = px.blue * maxValue / srcMax;
+                }
+                result[r + posY][c + posX] = px;
+            }
+    }
+
+    destData.data = result;
+    destData.size = Dimensions{ newWidth, newHeight };
+}
+
 
 
 void ImagePPM::save(const std::string& newName)
 {
-    std::string outputFile = newName.empty() ? this->filename + getCurrentDateAndTime() + ".ppm" : newName + ".ppm";
+    std::string outputFile = generateNewName(newName, ".ppm");
+
     std::ofstream image(outputFile, std::ios::binary);
     if (!image) {
         throw std::runtime_error("Failed to open file for writing: " + outputFile);
     }
 
     // Записване на header информация
-    ImageType type = this->modifyData->getType();
-    if (type == ImageType::P3) {
-        image << "P1\n";
+    if (this->type == ImageType::P3) {
+        image << "P3\n";
     }
     else {
         image << "P6\n";
     }
 
-    Dimensions size = this->modifyData->getSize();
+    const Dimensions& size = this->modifyData.size;
     image << size.width << ' ' << size.height << '\n';
 
+    image << this->modifyData.maxValue << '\n';
+
     // Записване на пиксели
-    if (type == ImageType::P1) {
+    if (this->type == ImageType::P3) {
         savePlain(image);
     }
     else {
@@ -208,16 +235,15 @@ void ImagePPM::save(const std::string& newName)
 
 void ImagePPM::saveRaw(std::ofstream& image) const
 {
-    Dimensions size = this->modifyData->getSize();
-    const std::vector<std::vector<Pixel>>& data = this->modifyData->getPixelData();
+    const Dimensions& size = this->modifyData.size;
 
     for (int r = 0; r < size.height; r++) {
         for (int c = 0; c < size.width; c++) {
-            const Pixel& px = data[r][c];
+            const Pixel& px = this->modifyData.data[r][c];
             unsigned char rgb[3] = {
-                static_cast<unsigned char>(px.red),
-                static_cast<unsigned char>(px.green),
-                static_cast<unsigned char>(px.blue)
+                px.red,
+                px.green,
+                px.blue,
             };
             image.write(reinterpret_cast<const char*>(rgb), 3);
         }
@@ -226,12 +252,11 @@ void ImagePPM::saveRaw(std::ofstream& image) const
 
 void ImagePPM::savePlain(std::ofstream& image) const
 {
-    Dimensions size = this->modifyData->getSize();
-    const std::vector<std::vector<Pixel>>& data = this->modifyData->getPixelData();
+    const Dimensions& size = this->modifyData.size;
 
     for (int r = 0; r < size.height; r++) {
         for (int c = 0; c < size.width; c++) {
-            const Pixel& px = data[r][c];
+            const Pixel& px = this->modifyData.data[r][c];
             image << px.red << ' ' << px.green << ' ' << px.blue << ' ';
         }
     }

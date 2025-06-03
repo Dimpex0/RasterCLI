@@ -96,6 +96,7 @@ void CommandProcessor::dispatchCommand(const InputData& data)
 		this->session->applyCommand(Command{ CommandType::FLIP_LEFT });
 	}
 	else if (data.command == "paste" && data.args.size() == 4) {
+		std::cout << "Enter paste dispatch" << '\n';
 		try {
 			unsigned posX = std::stoi(data.args[2]);
 			unsigned posY = std::stoi(data.args[3]);

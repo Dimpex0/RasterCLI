@@ -1,15 +1,12 @@
 #include <iostream>
 #include <string>
 #include "CommandProcessor.h"
-#include "Session.h"
-#include "ImagePBM.h"
-#include "ImagePGM.h"
-#include "Snapshot.h"
+#include "Image.h"
 
 int main()
 {
-    //CommandProcessor processor;
-    //processor.run();
+    CommandProcessor processor;
+    processor.run();
      
     
     //Image* image = new ImagePGM("C:\\Users\\mitko\\Downloads\\sample_640x426.pgm");
@@ -21,8 +18,10 @@ int main()
     //image->save("");
     //delete image;
 
-    Image* img1 = new ImagePBM("gerrymander.ascii.pbm");
-    Image* img2 = new ImagePBM("circle.pbm");
-    img1->paste(img2, 10, 20);
-    img1->save("");
+    //Image* img1 = new ImagePBM("gerrymander.ascii.pbm");
+    //Image* img2 = new ImagePBM("circle.pbm");
+    //img1->paste(img2, 10, 20);
+    //img1->save("");
+
+    return 0;
 }
