@@ -89,6 +89,8 @@ public:
 	virtual void paste(const Image* const src, unsigned posX, unsigned posY) = 0;
 	virtual void save(const std::string& newName) = 0;
 
+	virtual void info() const = 0;
+
 	bool getIsSaved() const { return this->isSaved; }
 	std::string getFileName() const { return this->filename; }
 	const Snapshot& getModifyData() const { return this->modifyData; }
@@ -97,7 +99,6 @@ public:
 	void applyCommand(const Command& command);
 	void undo();
 	void redo();
-	void applyCommands();
 
 protected:
 	virtual void readRaw(std::ifstream& image) = 0;

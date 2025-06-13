@@ -1,12 +1,12 @@
 #include <iostream>
 #include <string>
-#include "CommandProcessor.h"
+#include "SessionCommandProcessor.h"
 #include "Image.h"
 
 int main()
 {
-    CommandProcessor processor;
-    processor.run();
+    SessionCommandProcessor processor;
+    processor.run(std::cin);
      
     
     //Image* image = new ImagePGM("C:\\Users\\mitko\\Downloads\\sample_640x426.pgm");

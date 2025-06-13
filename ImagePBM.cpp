@@ -109,8 +109,6 @@ void ImagePBM::negative()
 
 void ImagePBM::paste(const Image* const src, unsigned posX, unsigned posY)
 {
-	std::cout << "Start paste on PBM" << '\n';
-
 	Snapshot& destData = this->modifyData;
 
 	unsigned newWidth = std::max(destData.size.width, posX + src->getModifyData().size.width);
@@ -194,6 +192,11 @@ void ImagePBM::save(const std::string& newName)
 	this->isSaved = true;
 }
 
+void ImagePBM::info() const
+{
+	std::cout << this->filename + " - portable bitmap format" << '\n';
+}
+
 void ImagePBM::savePlain(std::ofstream& image) const
 {
 	const Dimensions& size = this->modifyData.size;
@@ -220,6 +223,6 @@ void ImagePBM::saveRaw(std::ofstream& image) const {
 				}
 			}
 			image.write(reinterpret_cast<const char*>(&byte), 1);
-		}	
+		}
 	}
 }

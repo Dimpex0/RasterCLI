@@ -136,8 +136,6 @@ void ImagePPM::negative()
 
 void ImagePPM::paste(const Image* const src, unsigned posX, unsigned posY)
 {
-    std::cout << "Start paste on PPM" << '\n';
-
     Snapshot& destData = this->modifyData;
     unsigned newWidth = std::max(destData.size.width, posX + src->getModifyData().size.width);
     unsigned newHeight = std::max(destData.size.height, posY + src->getModifyData().size.height);
@@ -231,6 +229,11 @@ void ImagePPM::save(const std::string& newName)
     std::cout << "Saved as " << outputFile << '\n';
 
     this->isSaved = true;
+}
+
+void ImagePPM::info() const
+{
+    std::cout << this->filename + " - portable pixmap format" << '\n';
 }
 
 void ImagePPM::saveRaw(std::ofstream& image) const

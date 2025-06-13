@@ -61,7 +61,6 @@ std::string Image::generateNewName(const std::string& newName, const std::string
 
 void Image::applyCommand(const Command& command)
 {
-	std::cout << "Enter image apply command" << '\n';
 	switch (command.type) {
 	case CommandType::NEGATIVE: this->negative(); break;
 	case CommandType::MONOCHROME: this->monochrome(); break;
@@ -107,10 +106,6 @@ void Image::redo()
 	redoStack.pop_back();
 	this->modifyData = next;
 	history.push_back(next);
-}
-
-void Image::applyCommands()
-{
 }
 
 void Image::rotateLeft()

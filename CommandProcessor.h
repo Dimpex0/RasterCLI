@@ -9,16 +9,18 @@ struct InputData {
 class CommandProcessor
 {
 public:
-	~CommandProcessor();
-	// TODO: manage copying
+	virtual ~CommandProcessor() = default;
 
-	void run();
-	InputData parseInput(std::string input) const;
-	void dispatchCommand(const InputData& data);
-	void exit();
+	void run(std::istream& stream);
+	virtual void helpText() const = 0;
+	virtual void exit();
 
-private:
-	Session* session = nullptr;
+protected:
+	InputData parseInput(const std::string& rawInput) const;
+	std::string trimInput(std::string input) const;
+	virtual void dispatchCommand(const InputData& data) = 0;
+
+protected:
 	bool isRunning = true;
 };
 

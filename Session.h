@@ -1,12 +1,17 @@
-#pragma once
+﻿#pragma once
 #include "Image.h"
 
 
 class Session
 {
+	static int idCounter;
+
 public:
+	Session();
+	Session(const Session& other) = delete; // няма смисъл в копирането на сесии в рамките на приложението
 	~Session();
-	// TODO: manage copying
+
+	int getId() const { return id; }
 
 	void add(const std::string& filename);
 	void save() const;
@@ -22,6 +27,7 @@ private:
 	Image* findImage(const std::string& imageName) const;
 
 private:
+	const int id;
 	std::vector<Image*> images;
 };
 

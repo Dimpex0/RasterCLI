@@ -3,6 +3,13 @@
 #include "ImagePGM.h"
 #include "ImagePPM.h"
 
+int Session::idCounter = 0;
+
+Session::Session()
+	: id(idCounter++)
+{
+}
+
 Session::~Session()
 {
 	for (Image* image : this->images) {
@@ -36,6 +43,8 @@ void Session::add(const std::string& filename)
 	else {
 		throw std::invalid_argument("Invalid extension. Please don't forget to add .{extension} after each image.");
 	}
+
+	std::cout << filename << " added to session." << '\n';
 }
 
 void Session::save() const
@@ -48,22 +57,23 @@ void Session::save() const
 void Session::saveAs(const std::vector<std::string>& filenames) const
 {
 	if (filenames.size() > this->images.size()) {
-		throw std::logic_error("Too many names provided.");
+		throw std::invalid_argument("Too many names provided.");
 	}
 
 	for (size_t i = 0; i < filenames.size(); i++) {
-		this->images[i]->applyCommands();
 		this->images[i]->save(filenames[i]);
 	}
 
 	for (size_t i = filenames.size(); i < images.size(); i++) {
-		this->images[i]->applyCommands();
 		this->images[i]->save("");
 	}
 }
 
 void Session::listSession() const
 {
+	for (Image* image : this->images) {
+		image->info();
+	}
 }
 
 bool Session::isSaved() const
@@ -85,18 +95,16 @@ void Session::applyCommand(const Command& command) const
 
 void Session::paste(const std::string& image1, const std::string& image2, unsigned posX, unsigned posY) const
 {
-	std::cout << "Enter session paste" << '\n';
 	Image* src = findImage(image1);
 	Image* dest = findImage(image2);
 
 	if (src && dest) {
-		std::cout << "Enter session paste dispatch" << '\n';
 		Command cmd;
 		cmd.type = CommandType::PASTE;
 		cmd.imageArgs.push_back(src);
 		cmd.stringArgs.push_back(std::to_string(posX));
 		cmd.stringArgs.push_back(std::to_string(posY));
-		dest -> applyCommand(cmd);
+		dest->applyCommand(cmd);
 	}
 }
 

@@ -15,6 +15,8 @@ public:
 	void paste(const Image* const src, unsigned posX, unsigned posY);
 	void save(const std::string& newName) override;
 
+	void info() const override;
+
 protected:
 	void saveRaw(std::ofstream& image) const override;
 	void savePlain(std::ofstream& image) const override;

@@ -1,156 +1,93 @@
-#include "CommandProcessor.h"
+﻿#include "CommandProcessor.h"
 #include <iostream>
 
-CommandProcessor::~CommandProcessor()
-{
-	delete this->session;
-}
-
-void CommandProcessor::run() {
+void CommandProcessor::run(std::istream& stream) {
 	std::string input;
-	std::cout << "RasterCLI is ready. Type 'exit' to quit." << '\n';
+	std::cout << "RasterCLI is ready. Type 'exit' to quit or 'help' for a detailed list of all the commands" << '\n';
 	while (this->isRunning) {
 		std::cout << "> ";
-		std::getline(std::cin, input);
+		std::getline(stream, input);
 		
 		try {
 			dispatchCommand(parseInput(input));
 		}
-		catch (const std::exception& e) {
-			std::cout << "Error: " << e.what() << '\n';
+		catch (const std::invalid_argument& e) {
+			std::cout << "Invalid argument: " << e.what() << '\n';
+		}
+		catch (const std::runtime_error& e) {
+			std::cout << "Runtime error: " << e.what() << '\n';
+		}
+		catch (...) {
+			std::cout << "Something unexpected happened. Please try again." << '\n';
+			throw;
 		}
 	}
 }
 
-InputData CommandProcessor::parseInput(std::string input) const {
+InputData CommandProcessor::parseInput(const std::string& rawInput) const {
+	std::string input = trimInput(rawInput);
+
+	InputData data;
+
 	std::string command;
 	std::vector<std::string> args;
 	std::string token;
 	size_t pos = 0;
 
-	// Skip white spaces
-	while (pos < input.size() && input[pos] == ' ') ++pos;
-
-	// Get first word (command)
+	// Взима първа дума (команда)
 	while (pos < input.size() && input[pos] != ' ') {
-		command += input[pos++];
+		data.command += input[pos++];
 	}
 
-	// Get arguments
+	// Взима аргументите
 	while (pos < input.size()) {
-		while (pos < input.size() && input[pos] == ' ') ++pos; // skip white spaces
-		token.clear();
+		while (pos < input.size() && input[pos] == ' ') ++pos; // Пропуска white space преди всеки аргумент
+
 		while (pos < input.size() && input[pos] != ' ') {
 			token += input[pos++];
 		}
-		if (!token.empty()) args.push_back(token); // add argument to args list
+		if (!token.empty())
+		{
+			data.args.push_back(token);
+			token.clear();
+		}
 	}
 
-	return InputData{ command, args };
+	for (std::string arg : args) {
+		std::cout << arg << '\n';
+	}
+
+	return data;
 }
 
-void CommandProcessor::dispatchCommand(const InputData& data)
+std::string CommandProcessor::trimInput(std::string input) const
 {
-	// TODO handle command without session
-
-	if (data.command == "exit") {
-		this->exit();
-	}
-	else if (data.command == "load") {
-		if (!this->session) {
-			this->session = new Session;
-			for (const std::string& argument : data.args) {
-				this->session->add(argument);
-			}
+	int leftTrimSize = 0;
+	for (int i = 0; i < input.size(); i++) {
+		if (input[i] == ' ') {
+			leftTrimSize++;
 		}
 		else {
-			std::cout << "Session already loaded. Try adding images." << '\n';
+			break;
 		}
-		return;
 	}
-	else if (data.command == "add") {
-		for (const std::string& argument : data.args) {
-			this->session->add(argument);
+	input.erase(0, leftTrimSize);
+
+	int rightTrimSize = 0;
+	for (int i = input.size() - 1; i >= 0; i--) {
+		if (input[i] == ' ') {
+			rightTrimSize++;
 		}
-		return;
-	}
-	else if (data.command == "grayscale") {
-		this->session->applyCommand(Command{ CommandType::GRAYSCALE });
-	}
-	else if (data.command == "monochrome") {
-		this->session->applyCommand(Command{ CommandType::MONOCHROME });
-	}
-	else if (data.command == "negative") {
-		this->session->applyCommand(Command{ CommandType::NEGATIVE });
-	}
-	else if (data.command == "rotate" && data.args.size() == 1 && data.args[0] == "left") {
-		this->session->applyCommand(Command{ CommandType::ROTATE_LEFT });
-	}
-	else if (data.command == "rotate" && data.args.size() == 1 && data.args[0] == "right") {
-		this->session->applyCommand(Command{ CommandType::ROTATE_RIGHT });
-	}
-	else if (data.command == "flip" && data.args.size() == 1 && data.args[0] == "top") {
-		this->session->applyCommand(Command{ CommandType::FLIP_TOP });
-	}
-	else if (data.command == "flip" && data.args.size() == 1 && data.args[0] == "left") {
-		this->session->applyCommand(Command{ CommandType::FLIP_LEFT });
-	}
-	else if (data.command == "paste" && data.args.size() == 4) {
-		std::cout << "Enter paste dispatch" << '\n';
-		try {
-			unsigned posX = std::stoi(data.args[2]);
-			unsigned posY = std::stoi(data.args[3]);
+		else {
+			break;
 		}
-		catch (...) {
-			std::cout << "Invalid command. Must be src dest posX posY." << '\n';
-			return;
-		}
-		this->session->paste(data.args[0], data.args[1], std::stoi(data.args[2]), std::stoi(data.args[3]));
 	}
-	else if (data.command == "undo") {
-		this->session->undo();
-	}
-	else if (data.command == "redo") {
-		this->session->redo();
-	}
-	else if (data.command == "save") {
-		this->session->save();
-	}
-	else if (data.command == "saveas" && data.args.size() >= 1) {
-		this->session->saveAs(data.args);
-	}
-	else if (data.command == "list" && data.args.size() == 1 && data.args[0] == "session") {
-		this->session->listSession();
-	}
-	else {
-		std::cout << "Unknown command. Please try again." << '\n';
-	}
+	input.erase(input.size() - rightTrimSize, rightTrimSize);
+
+	return input;
 }
 
 void CommandProcessor::exit()
 {
-	if (!this->session) {
-		this->isRunning = false;
-		return;
-	}
-
-	if (!this->session->isSaved()) {
-		std::cout << "You have unsaved changes. Do you want to exit? (y/n): ";
-		char answer;
-		std::cin >> answer;
-		std::cin.get();
-		if (answer == 'y' || answer == 'Y') {
-			this->isRunning = false;
-			return;
-		}
-		else if (answer == 'n' || answer == 'N') {
-			return;
-		}
-		else {
-			std::cout << "Invalid response. Please try again." << '\n';
-			return;
-		}
-	}
-
 	this->isRunning = false;
 }
