@@ -138,7 +138,7 @@ void ImagePBM::paste(const Image* const src, unsigned posX, unsigned posY)
 		for (int r = 0; r < srcData.size.height; r++)
 			for (int c = 0; c < srcData.size.width; c++) {
 				unsigned v = srcData.data[r][c].red;
-				result[r + posY][c + posX] = (v >= threshold) ? Pixel{ 1, 1, 1 } : Pixel{ 0, 0, 0 };
+				result[r + posY][c + posX] = (v >= threshold) ? Pixel{ 0, 0, 0 } : Pixel{ 1, 1, 1 };
 			}
 	}
 	else if (srcType == ImageType::P3 || srcType == ImageType::P6) {
@@ -148,7 +148,7 @@ void ImagePBM::paste(const Image* const src, unsigned posX, unsigned posY)
 			for (int c = 0; c < srcData.size.width; c++) {
 				const Pixel& px = srcData.data[r][c];
 				unsigned gray = pixelToGray(px);
-				result[r + posY][c + posX] = (gray >= threshold) ? Pixel{ 1, 1, 1 } : Pixel{ 0, 0, 0 };
+				result[r + posY][c + posX] = (gray >= threshold) ? Pixel{ 0, 0, 0 } : Pixel{ 1, 1, 1 };
 			}
 	}
 
