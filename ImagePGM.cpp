@@ -136,7 +136,7 @@ void ImagePGM::paste(const Image* const src, unsigned posX, unsigned posY)
 		// PBM -> PGM
 		for (int r = 0; r < srcData.size.height; r++)
 			for (int c = 0; c < srcData.size.width; c++) {
-				unsigned v = srcData.data[r][c].red ? maxValue : 0;
+				unsigned v = srcData.data[r][c].red ? 0 : maxValue;
 				result[r + posY][c + posX] = Pixel{ v, v, v };
 			}
 	}
