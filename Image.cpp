@@ -22,7 +22,7 @@ std::string getCurrentDateAndTime()
     return result;
 }
 
-Dimensions& Image::extractWidthAndHeight(std::ifstream& image)
+Dimensions Image::extractWidthAndHeight(std::ifstream& image)
 {
 	Dimensions size{0, 0};
 	std::string token;

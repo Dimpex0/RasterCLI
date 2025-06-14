@@ -105,7 +105,7 @@ protected:
 	virtual void readPlain(std::ifstream& image) = 0;
 	virtual void savePlain(std::ofstream& image) const = 0;
 	virtual void saveRaw(std::ofstream& image) const = 0;
-	Dimensions& extractWidthAndHeight(std::ifstream& image);
+	Dimensions extractWidthAndHeight(std::ifstream& image);
 	std::string generateNewName(const std::string& newName, const std::string& extension) const;
 	unsigned pixelToGray(const Pixel& px) const {
 		return (unsigned)(0.299 * px.red + 0.587 * px.green + 0.114 * px.blue + 0.5);

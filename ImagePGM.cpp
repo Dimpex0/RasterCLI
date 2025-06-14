@@ -48,6 +48,7 @@ ImagePGM::ImagePGM(const std::string& filename)
 
 void ImagePGM::readRaw(std::ifstream& image)
 {
+	image.ignore();
 	const Dimensions& size = this->originalData.size;
 
 	for (int r = 0; r < size.height; r++) {

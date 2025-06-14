@@ -19,7 +19,7 @@ ImagePBM::ImagePBM(const std::string& filename)
 	}
 
 	this->originalData.size = extractWidthAndHeight(image);
-	std::cout << "Width: " << this->originalData.size.width << ", Height: " << this->originalData.size.height << '\n';
+	//std::cout << "Width: " << this->originalData.size.width << ", Height: " << this->originalData.size.height << '\n';
 
 	if (this->originalData.size.width <= 0 || this->originalData.size.height <= 0) {
 		throw std::runtime_error("Invalid file size.");
@@ -64,6 +64,7 @@ void ImagePBM::readPlain(std::ifstream& image)
 }
 
 void ImagePBM::readRaw(std::ifstream& image) {
+	image.ignore();
 	const Dimensions& size = this->originalData.size;
 
 	int rowBytes = (size.width + 7) / 8;			// Изчислява колко байта има на ред
@@ -73,6 +74,7 @@ void ImagePBM::readRaw(std::ifstream& image) {
 			image.read(reinterpret_cast<char*>(&byte), 1);
 			for (int bit = 0; bit < 8; bit++) {
 				int c = b * 8 + bit;
+				if (c >= size.width) break;
 				int pixelValue = (byte >> (7 - bit)) & 1;
 				if (pixelValue == 1) {
 					this->originalData.data[r][c] = Pixel{ 1, 1, 1 };

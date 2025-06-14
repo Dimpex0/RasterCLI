@@ -49,6 +49,7 @@ ImagePPM::ImagePPM(const std::string& filename)
 
 void ImagePPM::readRaw(std::ifstream& image)
 {
+    image.ignore();
     const Dimensions& size = this->originalData.size;
 
     for (int r = 0; r < size.height; r++) {

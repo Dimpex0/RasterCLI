@@ -164,6 +164,7 @@ void SessionCommandProcessor::helpText() const {
 	std::cout << "redo: Applies back the last command that was reveted with undo." << '\n';
 	std::cout << "list session: Gives info about every image in the active session." << '\n';
 	std::cout << "exit: Stops the program, but first ask if there are unsaved changes." << '\n';
+	std::cout << "stop: Stops the current session without exiting the application." << '\n';
 }
 
 bool isNumber(const std::string& s)
