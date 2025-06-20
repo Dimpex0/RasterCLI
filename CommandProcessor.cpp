@@ -53,10 +53,6 @@ InputData CommandProcessor::parseInput(const std::string& rawInput) const {
 		}
 	}
 
-	for (std::string arg : args) {
-		std::cout << arg << '\n';
-	}
-
 	return data;
 }
 

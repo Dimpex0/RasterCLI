@@ -1,0 +1,6 @@
+load images/gerrymander.pbm
+negative
+rotate right
+flip left
+save
+exit

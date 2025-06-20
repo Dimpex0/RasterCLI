@@ -11,21 +11,20 @@ ImagePPM::ImagePPM(const std::string& filename)
     // Прочитане на magic number
     std::string magic;
     image >> magic;
-    std::cout << magic << '\n';
-    std::cout << "Magic: " << magic << '\n';
+    //std::cout << magic << '\n';
     if (magic != "P3" && magic != "P6") {
         throw std::runtime_error("Unsupported PPM format: " + magic);
     }
 
     this->originalData.size = extractWidthAndHeight(image);
-    std::cout << "Width: " << this->originalData.size.width << ", Height: " << this->originalData.size.height << '\n';
+    //std::cout << "Width: " << this->originalData.size.width << ", Height: " << this->originalData.size.height << '\n';
 
     if (this->originalData.size.width <= 0 || this->originalData.size.height <= 0) {
         throw std::runtime_error("Invalid file size.");
     }
 
     image >> this->originalData.maxValue;
-    std::cout << "Max value: " << this->originalData.maxValue << '\n';
+    //std::cout << "Max value: " << this->originalData.maxValue << '\n';
     if (this->originalData.maxValue > 255) {
         throw std::runtime_error("2 bytes per pixel not supported.");
     }

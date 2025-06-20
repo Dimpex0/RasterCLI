@@ -1,0 +1,6 @@
+load images/4K.ppm
+negative
+add images/pgm.pgm
+paste images/pgm.pgm images/4K.ppm 200 200
+save
+exit

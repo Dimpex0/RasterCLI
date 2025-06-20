@@ -1,0 +1,4 @@
+load images/circle.pbm
+negative
+saveas negative_circle
+exit

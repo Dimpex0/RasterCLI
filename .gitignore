@@ -18,8 +18,3 @@ x64/
 *.pdb
 *.cache
 *.tlog
-
-*.pgm
-*.pbm
-*.ppm
-*.bmp

@@ -33,7 +33,7 @@ void SessionCommandProcessor::dispatchCommand(const InputData& data)
 				this->sessions.push_back(this->activeSession);
 				std::cout << "Session with id " << this->activeSession->getId() << " loaded." << '\n';
 				for (const std::string& argument : data.args) {
-					std::cout << "Arg: " << argument << '\n';
+					//std::cout << "Arg: " << argument << '\n';
 					this->activeSession->add(argument);
 				}
 			}

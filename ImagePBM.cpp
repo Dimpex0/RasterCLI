@@ -13,7 +13,7 @@ ImagePBM::ImagePBM(const std::string& filename)
 	// Прочитане на magic number
 	std::string magic;
 	image >> magic;
-	std::cout << "Magic: " << magic << '\n';
+	//std::cout << "Magic: " << magic << '\n';
 	if (magic != "P1" && magic != "P4") {
 		throw std::runtime_error("Unsupported PBM format: " + magic);
 	}
@@ -50,7 +50,7 @@ void ImagePBM::readPlain(std::ifstream& image)
 	const Dimensions& size = this->originalData.size;
 
 	int pixelValue, count = 0;
-	while (image >> pixelValue && count < size.width * size.height) {
+	while (count < size.width * size.height && image >> pixelValue) {
 		int r = count / size.width;
 		int c = count % size.width;
 		if (pixelValue == 1) {
@@ -61,6 +61,7 @@ void ImagePBM::readPlain(std::ifstream& image)
 		}
 		count++;
 	}
+	
 }
 
 void ImagePBM::readRaw(std::ifstream& image) {
@@ -219,6 +220,7 @@ void ImagePBM::saveRaw(std::ofstream& image) const {
 			unsigned char byte = 0;
 			for (int bit = 0; bit < 8; bit++) {
 				int c = b * 8 + bit;
+				if (c >= size.width) break;
 
 				if (this->modifyData.data[r][c].red) {
 					byte |= (1 << (7 - bit));
